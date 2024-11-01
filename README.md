@@ -4,13 +4,15 @@
 
 1. [Introduction](#introduction)
 2. [Setup and Configuration](#setup-and-configuration)
-3. [Modules](#modules)
-4. [State Management](#state-management)
-5. [Provisioners](#provisioners)
-6. [Workspaces](#workspaces)
-7. [Best Practices](#best-practices)
-8. [Troubleshooting](#troubleshooting)
-9. [References](#references)
+3. [AWS Provider in Terraform Registry](#aws-provider-in-terraform-registry)
+4. [Hello World](#hello-world)
+5. [Modules](#modules)
+6. [State Management](#state-management)
+7. [Provisioners](#provisioners)
+8. [Workspaces](#workspaces)
+9. [Best Practices](#best-practices)
+10. [Troubleshooting](#troubleshooting)
+11. [References](#references)
 
 ## Introduction
 
@@ -64,9 +66,9 @@ Detail of tfenv is [here](https://github.com/tfutils/tfenv).
 
 ![alt text](image-1.png)
 
-### AWS Provider in Terraform Registry
+## AWS Provider in Terraform Registry
 
-#### Introduction to AWS Provider
+### Introduction to AWS Provider
 
 The AWS Provider is a crucial component in Terraform that allows Terraform to interact with AWS services. It acts as a wrapper around Terraform, helping manage the lifecycle of AWS resources. This provider is publicly available in the Official Terraform Registry.
 
@@ -80,7 +82,7 @@ The AWS Provider is a crucial component in Terraform that allows Terraform to in
 
     * A group of multiple resources in one Terraform block for convenience.
 
-#### Navigating the Terraform AWS Registry
+### Navigating the Terraform AWS Registry
 
 [**AWS Provider Documentation**](https://registry.terraform.io/providers/hashicorp/aws/latest).
 
@@ -94,7 +96,7 @@ The official AWS Provider documentation is available in the Terraform Registry. 
 
 * The registry also includes top downloaded AWS modules, such as the VPC module. Modules compact multiple resources like NAT gateways, subnets, and route tables into a single piece of code for easier management.
 
-#### Using the AWS Provider
+### Using the AWS Provider
 
 To use the AWS Provider, add the following to your Terraform configuration:
 
@@ -145,13 +147,13 @@ module "vpc" {
 
 Detail can be found [here](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest)
 
-### Hello World
+## Hello World
 
 Creating Your First Terraform Configuration with AWS
 
 ![alt text](image-2.png)
 
-#### Step 1: Set Up the AWS Provider
+### Step 1: Set Up the AWS Provider
 
 First, we need to set up the AWS provider. Create a new file called `terraform.tf` and add the following configuration:
 
@@ -167,7 +169,7 @@ terraform {
 
 We can get this from the `USE PROVIDER` section of the terraform aws provider registry [here](https://registry.terraform.io)
 
-#### Step 2: Define the EC2 Instance
+### Step 2: Define the EC2 Instance
 
 Next, we will define an EC2 instance. We will use Amazon Linux as the AMI. Add the following following `data source` to get the latest Amazon Linux AMI in a new file named `main.tf` to :
 
@@ -199,7 +201,7 @@ resource "aws_instance" "web" {
 
 The details can be found in the [documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance).
 
-#### Step 3: Initialize Terraform
+### Step 3: Initialize Terraform
 
 Initialize Terraform to download the necessary providers:
 
@@ -207,7 +209,7 @@ Initialize Terraform to download the necessary providers:
 terraform init
 ```
 
-#### Step 4: Apply the Configuration
+### Step 4: Apply the Configuration
 
 Apply the configuration to create the EC2 instance:
 
@@ -217,7 +219,7 @@ terraform apply
 
 Type yes when prompted to confirm the action.
 
-#### Step 5: Add User Data for Apache Installation
+### Step 5: Add User Data for Apache Installation
 
 Create a script to `install Apache`. Create a folder called scripts and a file named `scripts/userdata.sh` with the following content:
 
@@ -241,7 +243,7 @@ resource "aws_instance" "web" {
 }
 ```
 
-#### Step 6: Create a Security Group
+### Step 6: Create a Security Group
 
 Create a security group to allow HTTP access. Add the following to `main.tf`:
 
@@ -289,7 +291,7 @@ terraform apply
 
 Type `yes` when prompted to confirm the action.
 
-#### Step 8: Output the Public IP
+### Step 8: Output the Public IP
 
 Add an output block in the `main.tf` to get the public IP of the instance:
 
@@ -307,7 +309,7 @@ terraform apply -auto-approve
 
 The whole example can be found [here](https://github.com/pluralsight-cloud/Advanced-Terraform-with-AWS/tree/main/section-2/01-create-first-configuration)
 
-### Adding Default Tags
+### Step 9: Adding Default Tags
 
 #### Importance of Tags
 
@@ -438,6 +440,7 @@ Tips for debugging Terraform configurations.
 
 ## References
 
-- [Terraform Documentation](https://www.terraform.io/docs)
+* [Terraform Documentation](https://www.terraform.io/docs)
+
 * [AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 * [Terraform Module Registry](https://registry.terraform.io/)
