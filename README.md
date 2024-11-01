@@ -145,6 +145,168 @@ module "vpc" {
 
 Detail can be found [here](https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest)
 
+### Hello World
+
+Creating Your First Terraform Configuration with AWS
+
+![alt text](image-2.png)
+
+#### Step 1: Set Up the AWS Provider
+
+First, we need to set up the AWS provider. Create a new file called `terraform.tf` and add the following configuration:
+
+```bash
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+  }
+}
+```
+
+We can get this from the `USE PROVIDER` section of the terraform aws provider registry [here](https://registry.terraform.io)
+
+#### Step 2: Define the EC2 Instance
+
+Next, we will define an EC2 instance. We will use Amazon Linux as the AMI. Add the following following `data source` to get the latest Amazon Linux AMI in a new file named `main.tf` to :
+
+```bash
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023*"]
+  }
+}
+```
+
+Now, we will define the EC2 instance `resource` using the AMI data source in the `main.tf` file:
+
+```bash
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t3.micro"
+}
+```
+
+The details can be found in the [documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance).
+
+#### Step 3: Initialize Terraform
+
+Initialize Terraform to download the necessary providers:
+
+```bash
+terraform init
+```
+
+#### Step 4: Apply the Configuration
+
+Apply the configuration to create the EC2 instance:
+
+```bash
+terraform apply
+```
+
+Type yes when prompted to confirm the action.
+
+#### Step 5: Add User Data for Apache Installation
+
+Create a script to `install Apache`. Create a folder called scripts and a file named `scripts/userdata.sh` with the following content:
+
+```bash
+#! /bin/bash
+
+sudo yum update -y
+sudo yum install -y httpd.x86_64
+sudo systemctl start httpd.service
+sudo systemctl enable httpd.service
+```
+
+Update main.tf to include the user data:
+
+```bash
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.this.id
+  instance_type = "t3.micro"
+
+  user_data              = filebase64("scripts/user_data.sh")
+}
+```
+
+#### Step 6: Create a Security Group
+
+Create a security group to allow HTTP access. Add the following to `main.tf`:
+
+```bash
+resource "aws_security_group" "allow_http" {
+  name        = "allow_http"
+  description = "Allow HTTP inbound traffic"
+  vpc_id      = data.aws_vpc.this.id
+
+  ingress {
+    description = "HTTP from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+Also update the main resource:
+
+```bash
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.this.id
+  instance_type = "t3.micro"
+  vpc_security_group_ids = [aws_security_group.allow_http.id]
+  user_data              = filebase64("scripts/user_data.sh")
+}
+```
+
+### Step 7: Apply the Updated Configuration
+
+Apply the updated configuration:
+
+```bash
+terraform apply
+```
+
+Type `yes` when prompted to confirm the action.
+
+#### Step 8: Output the Public IP
+
+Add an output block in the `main.tf` to get the public IP of the instance:
+
+```bash
+output "public_ip" {
+  value = aws_instance.web.public_ip
+}
+```
+
+Apply the configuration again to see the output:
+
+```bash
+terraform apply -auto-approve
+```
+
+The whole example can be found [here](https://github.com/pluralsight-cloud/Advanced-Terraform-with-AWS/tree/main/section-2/01-create-first-configuration)
+
 ### AWS Credentials
 
 How to configure AWS credentials for Terraform.
