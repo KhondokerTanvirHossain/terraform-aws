@@ -336,8 +336,8 @@ While we can add tags individually to each resource, there's a special configura
 
     default_tags {
         tags = {
-        Environment = "test"
-        Project     = "web-server"
+            Environment = "test"
+            Project     = "web-server"
         }
     }
     ```
