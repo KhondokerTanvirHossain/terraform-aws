@@ -307,6 +307,55 @@ terraform apply -auto-approve
 
 The whole example can be found [here](https://github.com/pluralsight-cloud/Advanced-Terraform-with-AWS/tree/main/section-2/01-create-first-configuration)
 
+### Adding Default Tags
+
+#### Importance of Tags
+
+Tags are a best practice not only in AWS but almost everywhere. They provide metadata that allows us to:
+
+* Identify resources
+* Group resources
+* Simplify resource management
+* Improve cost analysis insights
+* Configure granular permissions
+
+#### Using Default Tags in AWS Provider
+
+While we can add tags individually to each resource, there's a special configuration in the AWS provider that allows us to set default tags. This centralizes tag management and makes it easier to maintain.
+
+#### Setting Up Default Tags
+
+1. Set up default tags in our Terraform configuration.
+
+    In your `terraform.tf` file, add the `default_tags` block to the AWS provider configuration:
+
+    ``` bash
+    provider "aws" {
+
+    default_tags {
+        tags = {
+        Environment = "test"
+        Project     = "web-server"
+        }
+    }
+    ```
+
+2. Apply the Changes:
+
+    Run the following command to apply the changes:
+
+    ```bash
+    terraform apply
+    ```
+
+    Review the changes and type yes to confirm.
+
+3. Validate the Tags in AWS Console:
+
+    * Go to the AWS Management Console.
+    * Navigate to the EC2 instance and check the tags tab to see the new tags.
+    * Also, check the security group to ensure the tags are applied there as well.
+
 ### AWS Credentials
 
 How to configure AWS credentials for Terraform.
