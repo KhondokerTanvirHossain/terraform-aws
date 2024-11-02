@@ -6,13 +6,15 @@
 2. [Setup and Configuration](#setup-and-configuration)
 3. [AWS Provider in Terraform Registry](#aws-provider-in-terraform-registry)
 4. [Hello World](#hello-world)
-5. [Modules](#modules)
-6. [State Management](#state-management)
-7. [Provisioners](#provisioners)
-8. [Workspaces](#workspaces)
-9. [Best Practices](#best-practices)
-10. [Troubleshooting](#troubleshooting)
-11. [References](#references)
+5. [AWS Credentials](#aws-credentials)
+6. [Backend Configuration](#backend-configuration)
+7. [Modules](#modules)
+8. [State Management](#state-management)
+9. [Provisioners](#provisioners)
+10. [Workspaces](#workspaces)
+11. [Best Practices](#best-practices)
+12. [Troubleshooting](#troubleshooting)
+13. [References](#references)
 
 ## Introduction
 
@@ -358,7 +360,7 @@ While we can add tags individually to each resource, there's a special configura
     * Navigate to the EC2 instance and check the tags tab to see the new tags.
     * Also, check the security group to ensure the tags are applied there as well.
 
-### AWS Credentials
+## AWS Credentials
 
 There are multiple ways the AWS provider authenticates with AWS:
 
@@ -582,6 +584,8 @@ terraform {
 ```
 
 The full deail code can be found [here](https://github.com/pluralsight-cloud/Advanced-Terraform-with-AWS/tree/main/section-3/01-creating-backend-with-s3-and-dynamodb).
+
+## Modules
 
 ### Creating Modules
 
