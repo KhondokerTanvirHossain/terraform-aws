@@ -429,11 +429,159 @@ There are multiple ways the AWS provider authenticates with AWS:
     * Available through the Instance Metadata Service (IMDS).
     * Terraform supports both IMDSv1 and IMDSv2, with IMDSv2 being recommended.
 
-### Backend Configuration
+## Backend Configuration
 
-Configuring remote backends for storing Terraform state.
+### Importance of Backend
 
-## Modules
+Terraform requires a way to store the state of what it has deployed. Currently, we are using the local store backend, which means that the state files are stored in the same local folder as the Terraform configuration code. This state file is a JSON file that includes the current state of the resources created by Terraform.
+
+#### Issues with Local Backend
+
+1. Collaboration:
+    * The state file is locally stored on your computer, making it inaccessible to others. This is not ideal for team collaboration.
+2. Sensitive Information:
+    * The state file may include sensitive information like API keys and passwords, stored in plain text.
+3. Data Loss:
+    * If the state file is lost, it becomes difficult to maintain the lifecycle of the resources using Terraform.
+
+#### Benefits of Remote Backend
+
+1. Centralization:
+    * A Terraform backend centralizes the configuration, ensuring it is protected and accessible to others.
+2. Protection:
+    * The backend protects the state file in case of an issue with your local machine.
+3. Collaboration:
+    * It enables better collaboration with your teammates.
+
+### AWS Backend Configuration
+
+Since this course is about Terraform and AWS, let's see how to configure a backend using AWS.
+
+![alt text](image-3.png)
+
+#### Step 1: Create an CloudFormation yml as an IAC to provion the services
+
+##### Why CloudFormation?
+
+We are using CloudFormation to avoid the chicken or the egg problem. If we try to create the backend manually, it goes against the infrastructure as code concept. If we try to create the backend using Terraform, we face the issue of needing the backend first. Therefore, we use CloudFormation to create the required resources for the Terraform backend.
+
+##### CloudFormation Template
+
+Here is the CloudFormation template `backend.yml` to create the S3 bucket, DynamoDB table, and KMS key:
+
+```yml
+AWSTemplateFormatVersion: 2010-09-09
+Description: Encrypted Terraform Backend 
+Resources: 
+  TerraformBackends3Bucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: !GetAtt TerraformBackendKMSKey.Arn
+            BucketKeyEnabled: true
+      VersioningConfiguration: 
+        Status: Enabled
+      Tags:
+        - Key: Project
+          Value: Terraform
+  TerraformBackendKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      MultiRegion: true
+      Tags:
+        - Key: Project
+          Value: Terraform
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: Allow current account to access KMS
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+  
+  TerraformBackendKMSAlias:
+    Type: AWS::KMS::Alias
+    Properties: 
+      AliasName: alias/terraform-backend
+      TargetKeyId: !Ref TerraformBackendKMSKey
+
+  TerraformBackendDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: LockID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEType: KMS
+        SSEEnabled: true
+        KMSMasterKeyId: !GetAtt TerraformBackendKMSKey.Arn
+      Tags:
+        - Key: Project
+          Value: Terraform
+Outputs:
+  S3Bucket:
+    Description: The Terraform Backend S3 Bucket
+    Value: !Ref TerraformBackends3Bucket
+  DynamoDBTable:
+    Description: The Terraform Backend DynamoDB Table for handling locking
+    Value: !Ref TerraformBackendDynamoDBTable
+```
+
+#### Step 2: Create an deployment script to deploy the IAC
+
+Here is the `deploy.sh` script to deploy the CloudFormation stack and retrieve the outputs
+
+```bash
+aws cloudformation deploy \
+    --stack-name terraform-backend \
+    --template-file backend.yaml
+
+s3_bucket=$(aws cloudformation describe-stacks --stack terraform-backend --output text --query "Stacks[*].Outputs[?OutputKey=='S3Bucket'].OutputValue" | xargs)
+dynamodb_table=$(aws cloudformation describe-stacks --stack terraform-backend --output text --query "Stacks[*].Outputs[?OutputKey=='DynamoDBTable'].OutputValue" | xargs)
+
+echo
+echo "S3 bucket: ${s3_bucket}"
+echo "DynamoDB Table: ${dynamodb_table}"
+echo "*** Please, add these two values in your Backend block ***"
+```
+
+#### Step 3: Configuring Terraform Backend
+
+After deploying the CloudFormation stack, use the retrieved S3 bucket and DynamoDB table values to configure the Terraform backend in your `main.tf` file:
+
+```bash
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "path/to/your/key"
+    region         = "us-west-2"
+    dynamodb_table = "your-lock-table"
+    encrypt        = true
+    kms_key_id     = "your-kms-key-id"
+  }
+}
+```
+
+The full deail code can be found [here](https://github.com/pluralsight-cloud/Advanced-Terraform-with-AWS/tree/main/section-3/01-creating-backend-with-s3-and-dynamodb).
 
 ### Creating Modules
 
