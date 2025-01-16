@@ -238,10 +238,11 @@ Update main.tf to include the user data:
 
 ```bash
 resource "aws_instance" "web" {
-  ami           = data.aws_ami.this.id
+  ami           = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
-
-  user_data              = filebase64("scripts/user_data.sh")
+  vpc_security_group_ids = [aws_security_group.allow_http.id]
+  subnet_id  = module.vpc.public_subnets[0]
+  user_data              = filebase64("scripts/userdata.sh")
 }
 ```
 
@@ -253,7 +254,7 @@ Create a security group to allow HTTP access. Add the following to `main.tf`:
 resource "aws_security_group" "allow_http" {
   name        = "allow_http"
   description = "Allow HTTP inbound traffic"
-  vpc_id      = data.aws_vpc.this.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "HTTP from VPC"

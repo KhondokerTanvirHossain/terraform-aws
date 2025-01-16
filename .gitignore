@@ -1,0 +1,29 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform directories
+.terraform/
+vpc-ec2-public-web-practice/.terraform*
+
+# Local .env files
+.env
+.env.*
+
+# Lock files
+*.lock
+
+# Ignore editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
